@@ -13,11 +13,6 @@ export class SocketInstance implements SocketInterface {
     this.listenData();
   }
 
-  public close(): boolean {
-    this.socket.destroy();
-    return true;
-  }
-
   // Register a listener function for a specific event
   public on(listener: string, def: (...args) => void): boolean {
     this.handlers.set(listener, def);
@@ -33,12 +28,9 @@ export class SocketInstance implements SocketInterface {
   // Listen for data events on the socket
   private listenData() {
     this.socket.on("data", (data) => {
-      console.log(data.toString());
       this.buffer += data.toString();
       this.handleRequest();
     });
-
-    // this.socket.end();
   }
 
   public onDisconnect(cb: (data: boolean) => void) {
@@ -63,5 +55,10 @@ export class SocketInstance implements SocketInterface {
         console.log("not registered handlers");
       }
     }
+  }
+
+  public close(): boolean {
+    this.socket.destroy();
+    return true;
   }
 }

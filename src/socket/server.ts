@@ -10,11 +10,6 @@ export class Server implements ServerInterface {
     this.port = port;
   }
 
-  /**
-   * Register a callback to handle connection or close events.
-   * @param connection - Event type: "connection" or "close".
-   * @param cb - Callback function to handle the event.
-   */
   public on(
     connection: "connection",
     cb: (socket: SocketInterface) => void

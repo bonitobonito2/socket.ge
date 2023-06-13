@@ -1,5 +1,4 @@
 import { Server } from "./socket/server";
-import net from "net";
 
 const io = new Server(3000);
 
@@ -9,8 +8,9 @@ io.on("connection", (socket) => {
   socket.on("message", (data) => {
     console.log("recived message", data);
   });
-  socket.on("data", (data) => [console.log("recived data", data)]);
+
   socket.emit("message from server", "gamarjobas getyvis ia");
+
   socket.on("chatting", (data) => {
     console.log("recived chat", data);
     socket.emit("listened", "hello my friend from server");
@@ -19,5 +19,3 @@ io.on("connection", (socket) => {
     console.log("client disconnected");
   });
 });
-
-// io.on('')
