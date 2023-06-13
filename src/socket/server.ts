@@ -7,9 +7,10 @@ import { Clients } from "./clients";
 export class Server implements ServerInterface {
   private server: net.Server;
   private readonly port: number;
-  private clients: Clients = new Clients();
+  private clients: Clients;
 
   constructor(port: number) {
+    this.clients = new Clients();
     this.port = port;
   }
 

@@ -6,14 +6,16 @@ import { Clients } from "./clients";
 export class SocketInstance implements SocketInterface {
   private socket: net.Socket;
   private buffer: string = "";
-  private handlers: Map<string, (...args: any[]) => void> = new Map();
-  private readonly parse: Parse = new Parse();
+  private handlers: Map<string, (...args: any[]) => void>;
+  private readonly parse: Parse;
   private clients: Clients;
-  public id: number;
+  public readonly id: number;
 
   constructor(socket: net.Socket, client: Clients) {
     this.socket = socket;
     this.clients = client;
+    this.parse = new Parse();
+    this.handlers = new Map();
     this.id = socket.remotePort;
     this.listenData();
   }
@@ -31,6 +33,17 @@ export class SocketInstance implements SocketInterface {
     return true;
   }
 
+  public emitToRoom(roomName: string, event: string, data: any): this {
+    const connections = this.clients.getUsersByRoomName(roomName);
+    connections.forEach((userId) => {
+      this.clients.connections
+        .get(userId)
+        .write(JSON.stringify({ event, data, end: true }));
+    });
+
+    return this;
+  }
+
   // Listen for data events on the socket
   private listenData() {
     this.socket.on("data", (data) => {
@@ -41,9 +54,21 @@ export class SocketInstance implements SocketInterface {
 
   public onDisconnect(cb: (data: boolean) => void) {
     this.socket.on("close", (data: boolean) => {
-      this.clients.removeConnection(this.socket.remotePort);
-      cb(data);
+      try {
+        this.clients.removeConnection(this.socket.remotePort);
+        this.clients.removeUserFromRoomEveryRoom(this.id);
+
+        cb(data);
+      } catch (err) {
+        cb(false);
+      }
     });
+  }
+
+  public join(roomName: string) {
+    this.clients.addUserToRoom(roomName, this.id);
+
+    console.log(this.clients.rooms);
   }
 
   // Handle the incoming data by parsing it and calling the associated handler function

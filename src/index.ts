@@ -10,8 +10,10 @@ io.on("connection", (socket) => {
     console.log(socket.id, "user id on server");
   });
 
-  socket.emit("message from server", "gamarjobas getyvis ia");
-
+  socket.on("join", (data) => {
+    console.log(data, "listening join");
+    socket.join(data["room"]);
+  });
   socket.on("chatting", (data) => {
     console.log("recived chat", data);
 
@@ -19,5 +21,9 @@ io.on("connection", (socket) => {
   });
   socket.onDisconnect(() => {
     console.log("client disconnected");
+  });
+
+  socket.on("writeToRoom", (data) => {
+    socket.emitToRoom("chat1", "sent check", data["message"]);
   });
 });
