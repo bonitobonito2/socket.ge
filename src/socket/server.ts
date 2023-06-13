@@ -8,6 +8,7 @@ export class Server implements ServerInterface {
   private server: net.Server;
   private readonly port: number;
   private clients: Clients = new Clients();
+
   constructor(port: number) {
     this.port = port;
   }
@@ -29,9 +30,8 @@ export class Server implements ServerInterface {
     }
 
     this.listen();
-
-    // Start the server and listen on the specified port
   }
+
   private listen() {
     this.server.listen(this.port, () => {
       console.log("Server is listening on port", this.port);
