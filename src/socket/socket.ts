@@ -1,21 +1,27 @@
 import net from "net";
 import { SocketInterface } from "./interfaces/socket.interface";
 import { Parse } from "../parser/parse";
+import { Clients } from "./clients";
 
 export class SocketInstance implements SocketInterface {
   private socket: net.Socket;
   private buffer: string = "";
   private handlers: Map<string, (...args: any[]) => void> = new Map();
   private readonly parse: Parse = new Parse();
+  private clients: Clients;
+  public id: number;
 
-  constructor(socket: net.Socket) {
+  constructor(socket: net.Socket, client: Clients) {
     this.socket = socket;
+    this.clients = client;
+    this.id = socket.remotePort;
     this.listenData();
   }
 
   // Register a listener function for a specific event
   public on(listener: string, def: (...args) => void): boolean {
     this.handlers.set(listener, def);
+
     return true;
   }
 
@@ -35,6 +41,7 @@ export class SocketInstance implements SocketInterface {
 
   public onDisconnect(cb: (data: boolean) => void) {
     this.socket.on("close", (data: boolean) => {
+      this.clients.removeConnection(this.socket.remotePort);
       cb(data);
     });
   }
