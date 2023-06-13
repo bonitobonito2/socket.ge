@@ -33,8 +33,17 @@ export class SocketInstance implements SocketInterface {
   // Listen for data events on the socket
   private listenData() {
     this.socket.on("data", (data) => {
+      console.log(data.toString());
       this.buffer += data.toString();
       this.handleRequest();
+    });
+
+    // this.socket.end();
+  }
+
+  public onDisconnect(cb: (data: boolean) => void) {
+    this.socket.on("close", (data: boolean) => {
+      cb(data);
     });
   }
 

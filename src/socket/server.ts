@@ -1,9 +1,9 @@
 import net from "net";
 import { SocketInstance } from "./socket";
 import { SocketInterface } from "./interfaces/socket.interface";
-import { Parse } from "../parser/parse";
+import { ServerInterface } from "./interfaces/server.interface";
 
-export class Server {
+export class Server implements ServerInterface {
   private server: net.Server;
   private readonly port: number;
   constructor(port: number) {
@@ -16,9 +16,9 @@ export class Server {
    * @param cb - Callback function to handle the event.
    */
   public on(
-    connection: "connection" | "close",
-    cb: (socket: SocketInterface) => void | boolean
-  ) {
+    connection: "connection",
+    cb: (socket: SocketInterface) => void
+  ): void {
     switch (connection) {
       case "connection":
         // Create a server instance to handle connection events
@@ -27,12 +27,13 @@ export class Server {
           cb(new SocketInstance(socket));
         });
         break;
-      case "close":
-        this.server.close();
-        return true;
     }
 
+    this.listen();
+
     // Start the server and listen on the specified port
+  }
+  private listen() {
     this.server.listen(this.port, () => {
       console.log("Server is listening on port", this.port);
     });
