@@ -1,5 +1,3 @@
-# socket.ge
-
 `socket.ge` is a JavaScript library that provides a simplified and efficient way to work with TCP socket connections in Node.js. It abstracts the underlying TCP functionalities and provides a clean interface for managing client connections and facilitating communication between the server and connected clients.
 
 ## Features
@@ -77,4 +75,6 @@ For detailed documentation and examples, please refer to the [socket.ge document
 
 ## License
 
-`socket.ge` library is licensed under the MIT License.
+# `socket.ge` library is licensed under the MIT License.
+
+> > > > > > > 71fea5d4525a940e91e9fc8eb75d508e38ec474e
