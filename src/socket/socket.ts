@@ -1,68 +1,58 @@
 import net from "net";
+import { SocketInterface } from "./interfaces/socket.interface";
+import { Parse } from "../parser/parse";
 
-const PORT = 8080;
-
-enum OnKeyWords {
-  CONNECTION,
-}
-export class Server {
-  private server: net.Server;
-  private readonly port: number;
-
-  constructor(port: number) {
-    this.port = port;
-  }
-
-  public on(
-    connectio: "connection" | "close",
-    cb: (socket: SocketInstance) => void
-  ) {
-    switch (connectio) {
-      case "connection":
-        this.server = net.createServer((socket) => {
-          cb(new SocketInstance(socket));
-          //   socket.write("connection established");
-        });
-    }
-
-    this.server.listen(this.port, () => {
-      console.log("server is listening");
-    });
-  }
-}
-
-export class SocketInstance {
+export class SocketInstance implements SocketInterface {
   private socket: net.Socket;
   private buffer: string = "";
   private handlers: Map<string, (...args: any[]) => void> = new Map();
+  private readonly parse: Parse = new Parse();
+
   constructor(socket: net.Socket) {
     this.socket = socket;
     this.listenData();
   }
 
-  private parseIncomingData(): Object {
-    const endIndex = this.buffer.indexOf("}") + 1;
-    const jsonString = this.buffer.substring(0, endIndex);
-    this.buffer = this.buffer.substring(endIndex);
-    return JSON.parse(jsonString);
+  public close(): boolean {
+    this.socket.destroy();
+    return true;
   }
 
-  public on(listener: string, def: (...args) => void) {
+  // Register a listener function for a specific event
+  public on(listener: string, def: (...args) => void): boolean {
     this.handlers.set(listener, def);
+    return true;
   }
-  public listenData() {
+
+  // Emit an event with associated data
+  public emit(event: string, data: any): boolean {
+    this.socket.write(JSON.stringify({ event, data, end: true }));
+    return true;
+  }
+
+  // Listen for data events on the socket
+  private listenData() {
     this.socket.on("data", (data) => {
       this.buffer += data.toString();
-
-      while (this.buffer.includes("}")) {
-        const lastData = this.parseIncomingData();
-
-        try {
-          this.handlers.get(lastData["path"])(lastData["data"]);
-        } catch (error) {
-          console.log("Not registared handlers for ", lastData["path"]);
-        }
-      }
+      this.handleRequest();
     });
+  }
+
+  // Handle the incoming data by parsing it and calling the associated handler function
+  private handleRequest() {
+    while (this.buffer.includes('"end":true}')) {
+      // Parse the incoming data from the buffer and return it as an object
+      const data = this.parse.parseIncomingData(this.buffer);
+
+      //Taking new buffer to counter a while loop.
+      this.buffer = data[1];
+
+      try {
+        //Taking a request to handle it.
+        this.handlers.get(data[0]["path"])(data[0]["data"]);
+      } catch (error) {
+        console.log("not registered handlers");
+      }
+    }
   }
 }
