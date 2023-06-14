@@ -10,5 +10,6 @@ export declare class Client {
     private handleRequest;
     private onData;
     emit(eventName: string, data: any): void;
+    private something;
     close(): void;
 }

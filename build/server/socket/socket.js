@@ -69,9 +69,7 @@ class SocketInstance {
                 //Taking a request to handle it.
                 this.handlers.get(data[0]["path"])(data[0]["data"]);
             }
-            catch (error) {
-                console.log("not registered handlers");
-            }
+            catch (error) { }
         }
     }
     close() {

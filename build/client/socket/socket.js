@@ -22,24 +22,24 @@ class Client {
             this.buffer = data[1];
             try {
                 //Taking a request to handle it.
-                console.log(this.handlers);
                 this.handlers.get(data[0]["path"])(data[0]["data"]);
             }
-            catch (error) {
-                console.log("not registered handlers");
-            }
+            catch (error) { }
         }
     }
     onData() {
         this.client.on("data", (data) => {
             this.buffer += data.toString();
-            console.log(this.buffer);
             this.handleRequest();
+        });
+        this.client.on("close", () => {
+            console.log("disconected from server");
         });
     }
     emit(eventName, data) {
         this.client.write(JSON.stringify({ path: eventName, data: data, end: true }));
     }
+    something() { }
     close() {
         this.client.destroy();
     }

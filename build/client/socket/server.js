@@ -13,7 +13,6 @@ class Io {
     }
     createConnection(cb) {
         this.client = net_1.default.createConnection(this.port, "localhost", () => {
-            console.log("client connected to server");
             cb();
         });
         return new socket_1.Client(this.client);

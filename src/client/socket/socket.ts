@@ -29,19 +29,19 @@ export class Client {
 
       try {
         //Taking a request to handle it.
-        console.log(this.handlers);
         this.handlers.get(data[0]["path"])(data[0]["data"]);
-      } catch (error) {
-        console.log("not registered handlers");
-      }
+      } catch (error) {}
     }
   }
 
   private onData() {
     this.client.on("data", (data) => {
       this.buffer += data.toString();
-      console.log(this.buffer);
       this.handleRequest();
+    });
+
+    this.client.on("close", () => {
+      console.log("disconected from server");
     });
   }
 
@@ -50,6 +50,7 @@ export class Client {
       JSON.stringify({ path: eventName, data: data, end: true })
     );
   }
+
   public close() {
     this.client.destroy();
   }

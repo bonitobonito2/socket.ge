@@ -12,7 +12,6 @@ export class Io {
   }
   public createConnection(cb: () => void): Client {
     this.client = net.createConnection(this.port, "localhost", () => {
-      console.log("client connected to server");
       cb();
     });
     return new Client(this.client);
