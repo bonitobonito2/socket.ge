@@ -1,85 +1,65 @@
-import net from "net";
-import { SocketInterface } from "./interfaces/socket.interface";
-import { Parse } from "../parser/parse";
-import { Clients } from "./clients";
-
-export class SocketInstance implements SocketInterface {
-  private socket: net.Socket;
-  private buffer: string = "";
-  private handlers: Map<string, (...args: any[]) => void>;
-  private readonly parse: Parse;
-  private clients: Clients;
-  public readonly id: number;
-
-  constructor(socket: net.Socket, client: Clients) {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.SocketInstance = void 0;
+const parse_1 = require("../../parser/parse");
+class SocketInstance {
+  constructor(socket, client) {
+    this.buffer = "";
     this.socket = socket;
     this.clients = client;
-    this.parse = new Parse();
+    this.parse = new parse_1.Parse();
     this.handlers = new Map();
     this.id = socket.remotePort;
     this.listenData();
   }
-
   // Register a listener function for a specific event
-  public on(listener: string, def: (...args) => void): boolean {
+  on(listener, def) {
     this.handlers.set(listener, def);
-
     return true;
   }
-
   // Emit an event with associated data
-  public emit(event: string, data: any): boolean {
+  emit(event, data) {
     this.socket.write(JSON.stringify({ event, data, end: true }));
     return true;
   }
-
-  public emitToRoom(roomName: string, event: string, data: any): this {
+  emitToRoom(roomName, event, data) {
     const connections = this.clients.getUsersByRoomName(roomName);
     connections.forEach((userId) => {
       this.clients.connections
         .get(userId)
         .write(JSON.stringify({ event, data, end: true }));
     });
-
     return this;
   }
-
   // Listen for data events on the socket
-  private listenData() {
+  listenData() {
     this.socket.on("data", (data) => {
       this.buffer += data.toString();
       this.handleRequest();
     });
   }
-
-  public onDisconnect(cb: (data: boolean) => void) {
-    this.socket.on("close", (data: boolean) => {
+  onDisconnect(cb) {
+    this.socket.on("close", (data) => {
       try {
         this.clients.removeConnection(this.socket.remotePort);
         this.clients.removeUserFromRoomEveryRoom(this.id);
-
         cb(data);
       } catch (err) {
         cb(false);
       }
     });
   }
-
-  public join(roomName: string) {
+  join(roomName) {
     this.clients.addUserToRoom(roomName, this.id);
-
     console.log(this.clients.rooms);
   }
-
   // Handle the incoming data by parsing it and calling the associated handler function
-  private handleRequest() {
+  handleRequest() {
     while (this.buffer.includes('"end":true}')) {
       // Parse the incoming data from the buffer and return it as an object
       const data = this.parse.parseIncomingData(this.buffer);
-
       //Taking new buffer to counter a while loop.
       this.buffer = data[1];
-
       try {
         //Taking a request to handle it.
         this.handlers.get(data[0]["path"])(data[0]["data"]);
@@ -88,9 +68,9 @@ export class SocketInstance implements SocketInterface {
       }
     }
   }
-
-  public close(): boolean {
+  close() {
     this.socket.destroy();
     return true;
   }
 }
+exports.SocketInstance = SocketInstance;
