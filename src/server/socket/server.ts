@@ -9,11 +9,22 @@ export class Server implements ServerInterface {
   private readonly port: number;
   private clients: Clients;
 
+  /**
+   * Creates a new Server instance.
+   *
+   * @param port - The port number on which the server will listen for connections.
+   */
   constructor(port: number) {
     this.clients = new Clients();
     this.port = port;
   }
 
+  /**
+   * Register a callback function to handle connection events.
+   *
+   * @param connection - The event name, currently only supports "connection".
+   * @param cb - The callback function to handle the connection event.
+   */
   public on(
     connection: "connection",
     cb: (socket: SocketInterface) => void
@@ -33,6 +44,10 @@ export class Server implements ServerInterface {
     this.listen();
   }
 
+  /**
+   * Start listening for incoming connections on the specified port.
+   * Automatically called after creating the server instance.
+   */
   private listen() {
     this.server.listen(this.port, () => {
       console.log("Server is listening on port", this.port);

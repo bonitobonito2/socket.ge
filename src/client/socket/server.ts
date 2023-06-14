@@ -1,18 +1,30 @@
 import net from "net";
-import { Parse } from "../parser/parse";
 import { Client } from "./socket";
+
 export class Io {
   private port: number;
   private client: net.Socket;
-  private handlers: Map<string, (...args: any[]) => void>;
-  private clientObject: Client;
+
+  /**
+   * Creates a new Io instance.
+   *
+   * @param port - The port number to connect to.
+   */
   constructor(port: number) {
     this.port = port;
-    this.handlers = new Map();
   }
-  public createConnection(cb: () => void): Client {
+
+  /**
+   * Create a connection to the server and return a Client instance.
+   *
+   * @param cb - Optional callback function to execute once the connection is established.
+   * @returns A Client instance representing the client connection.
+   */
+  public createConnection(cb?: () => void): Client {
     this.client = net.createConnection(this.port, "localhost", () => {
-      cb();
+      if (cb) {
+        cb();
+      }
     });
     return new Client(this.client);
   }
