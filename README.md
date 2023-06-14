@@ -1,143 +1,107 @@
-README.md
+# socket.ge
 
-# Socket.ge
+socket.ge is a lightweight Node.js library that provides a simplified interface for building TCP server and client applications. It simplifies the process of handling socket connections, emitting events, and managing data transmission over TCP.
 
-Socket.ge is a lightweight library for creating server-side socket connections in Node.js. It provides an intuitive and straightforward API for handling socket events, managing client connections, and facilitating communication between clients.
+## Features
+
+- Easy-to-use API for creating TCP server and client instances.
+- Event-driven architecture for handling socket events and data transmission.
+- Support for emitting events and sending data between server and client.
+- Room-based broadcasting to send data to multiple clients in a specific room.
 
 ## Installation
 
-To install Socket.ge, use npm:
-
-```
+```shell
 npm install socket.ge
 ```
 
 ## Usage
 
-Here's an example of how to use Socket.ge to create a server and handle socket events:
+### Server
 
-```typescript
+```javascript
 import { Server } from "socket.ge";
 
-const io = new Server(3000);
+const server = new Server(3000);
 
-io.on("connection", (socket) => {
-  console.log("Client connected");
-
-  socket.on("message", (data) => {
-    console.log("Received message:", data);
-    console.log("User ID on server:", socket.id);
+server.on("connection", (socket) => {
+  // Handle socket connection event
+  socket.on("data", (data) => {
+    // Handle data received from the client
+    console.log("Received data:", data);
   });
 
-  socket.on("join", (data) => {
-    console.log("Listening for join:", data);
-    socket.join(data["room"]);
-  });
-
-  socket.on("chatting", (data) => {
-    console.log("Received chat:", data);
-
-    socket.emit("listened", "Hello, my friend from the server");
-  });
-
-  socket.onDisconnect(() => {
-    console.log("Client disconnected");
-  });
-
-  socket.on("writeToRoom", (data) => {
-    socket.emitToRoom("chat1", "sent check", data["message"]);
+  socket.on("disconnect", () => {
+    // Handle socket disconnection event
+    console.log("Socket disconnected");
   });
 });
 ```
 
-Socket.ge provides a `Server` class that creates a server instance to handle socket connections. You can listen for the `"connection"` event to receive a `socket` object representing the connected client. The `socket` object provides methods such as `on`, `emit`, `close`, `onDisconnect`, `join`, and `emitToRoom` to handle various socket operations.
+### Client
 
-Please refer to the API documentation below for detailed information on each method and event.
+```javascript
+import { Io } from "socket.ge";
 
-## API Documentation
+const client = new Io(3000);
+
+client.createConnection(() => {
+  // Connection successful, perform further operations
+  client.emit("event", "Hello, server!");
+});
+
+client.on("data", (data) => {
+  // Handle data received from the server
+  console.log("Received data:", data);
+});
+
+client.on("disconnect", () => {
+  // Handle client disconnection event
+  console.log("Client disconnected");
+});
+```
+
+## API
 
 ### Server
 
-#### `on(connection: "connection", cb: (socket: SocketInterface) => void): void`
+#### `new Server(port: number)`
 
-- Listens for the `"connection"` event and invokes the provided callback function when a client connects.
-- The `socket` object passed to the callback implements the `SocketInterface` interface.
+- Creates a TCP server instance listening on the specified `port`.
 
-### Socket
+#### `on(event: string, callback: (socket: SocketInstance) => void)`
 
-#### `id: number`
+- Registers a listener for the specified `event` ("connection", "disconnect").
+- The `callback` function is invoked when the event occurs and is passed the `SocketInstance` object representing the connected socket.
 
-- The ID of the socket (assigned by the server).
+### Client
 
-#### `on(listener: string, def: (...args: any[]) => void): boolean`
+#### `new Io(port: number)`
 
-- Registers a listener function for a specific event.
-- The `listener` parameter is the name of the event to listen for.
-- The `def` parameter is the callback function to be invoked when the event occurs.
+- Creates a client instance to connect to a TCP server running on the specified `port`.
 
-#### `emit(event: string, data: any): boolean`
+#### `createConnection(callback: () => void): Client`
 
-- Emits an event with the associated data to the connected client.
-- The `event` parameter is the name of the event to emit.
-- The `data` parameter is the data to be sent along with the event.
+- Initiates the connection to the server.
+- The `callback` function is invoked when the connection is successfully established.
 
-#### `close(): boolean`
+#### `on(event: string, callback: (data: any) => void): boolean`
 
-- Closes the socket connection.
+- Registers a listener for the specified `event` ("data", "disconnect").
+- The `callback` function is invoked when the event occurs and is passed the received `data`.
 
-#### `onDisconnect(cb: (data: boolean) => void)`
+#### `emit(eventName: string, data: any)`
 
-- Registers a callback function to be invoked when the client disconnects.
+- Emits an `eventName` event to the server with the provided `data`.
 
-#### `join(roomName: string)`
+#### `close()`
 
-- Joins the specified room.
+- Closes the client connection.
 
-#### `emitToRoom(roomName: string, event: string, data: any): this`
+## Contributing
 
-- Emits an event with the associated data to all clients in the specified room.
-- The `roomName` parameter is the name of the room to emit the event to.
-- The `event` parameter is the name of the event to emit.
-- The `data` parameter is the data to be sent along with the event.
-
-### Clients
-
-#### `addConnection(number: number, socket: net.Socket): void`
-
-- Adds a client connection to the internal connections map.
-- The `number` parameter is the assigned number of the
-
-client.
-
-- The `socket` parameter is the corresponding `net.Socket` object representing the client connection.
-
-#### `removeConnection(number: number): void`
-
-- Removes a client connection from the internal connections map.
-- The `number` parameter is the number of the client connection to remove.
-
-#### `removeUserFromRoomEveryRoom(userId: number)`
-
-- Removes the specified user from all rooms.
-
-#### `getUsersByRoomName(roomName: string): Array<number>`
-
-- Retrieves an array of user IDs in the specified room.
-
-#### `createRoom(roomName: string)`
-
-- Creates a new room with the specified name.
-
-#### `addUserToRoom(roomName: string, user: number)`
-
-- Adds a user to the specified room.
-- If the room doesn't exist, it will be created automatically.
-
-#### `addUsersToRoom(roomName: string, users: Array<number>)`
-
-- Adds multiple users to the specified room.
-- If the room doesn't exist, it will be created automatically.
+Contributions are welcome! Please feel free to submit any bug reports, feature requests, or pull requests on the [GitHub repository](https://github.com/your-repository).
 
 ## License
 
-Socket.ge is released under the [MIT License](https://opensource.org/licenses/MIT).
+socket.ge is [MIT licensed](https://github.com/your-repository/blob/main/LICENSE).
